@@ -1,2 +1,10 @@
 pika==1.3.2
 python-dotenv==1.0.0
+kagglehub
+numpy
+librosa
+matplotlib
+scikit-learn
+tensorflow
+ipython
+opencv-python-headless
