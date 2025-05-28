@@ -4,6 +4,7 @@ import random
 import os
 import logging
 from logging.handlers import RotatingFileHandler
+import gun_type_finder
 # from config import RABBITMQ_CONFIG
 
 class RabbitMQWorker:
@@ -15,8 +16,6 @@ class RabbitMQWorker:
         )
         self.credentials = pika.PlainCredentials(**{'username': 'guest', 'password': 'guest'})
         self.connection_params = pika.ConnectionParameters(host=os.environ.get('RABBITMQ_HOST', 'localhost'), port='5672', credentials=self.credentials)
-        # self.connection = pika.BlockingConnection(self.parameters)
-        # self.channel = self.connection.channel()
         self._connect()
 
     def _connect(self):
@@ -51,11 +50,17 @@ class RabbitMQWorker:
             message = json.loads(body)
             self.logger.info(f"Received from Ruby: {message}")
             
+            no_name_gun = self.find_no_name_gun(message['data'])
+            print(no_name_gun)
             # Формируем ответ
+            gun = self.find_simmilar(message['data'], no_name_gun)
+            if gun:
+                gun = { 'id': gun['id'], 'name': gun['name']}
             response = {
                 'user_id': message['user_id'],
                 'message_id': message['message_id'],
-                'gun': random.choice(message['data']),
+                'gun': gun,
+                'secret_gun': no_name_gun['id'],
                 "processed_by": "python_worker",
                 "status": "success" 
             }
@@ -88,3 +93,15 @@ class RabbitMQWorker:
         
         print(f" [*] Waiting for messages from input_queue. To exit press CTRL+C")
         self.channel.start_consuming()
+
+    def find_simmilar(self, guns, new_gun):
+        finder = gun_type_finder.GunTypeFinder()
+        result = finder.find_simmilarest(guns, new_gun)
+        print(result)
+        return result
+
+
+    def find_no_name_gun(self, guns):
+        for index, gun in enumerate(guns):
+            if gun['name'] is None : return guns.pop(index)
+
