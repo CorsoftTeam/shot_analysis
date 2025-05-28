@@ -51,11 +51,16 @@ class RabbitMQWorker:
             self.logger.info(f"Received from Ruby: {message}")
             
             no_name_gun = self.find_no_name_gun(message['data'])
+            print(no_name_gun)
             # Формируем ответ
+            gun = self.find_simmilar(message['data'], no_name_gun)
+            if gun:
+                gun = { 'id': gun['id'], 'name': gun['name']}
             response = {
                 'user_id': message['user_id'],
                 'message_id': message['message_id'],
-                'gun': self.find_simmilar(message['data'], no_name_gun),
+                'gun': gun,
+                'secret_gun': no_name_gun['id'],
                 "processed_by": "python_worker",
                 "status": "success" 
             }
@@ -91,53 +96,12 @@ class RabbitMQWorker:
 
     def find_simmilar(self, guns, new_gun):
         finder = gun_type_finder.GunTypeFinder()
-        new_gun['type'] = finder.find_type(new_gun['sound_url'])
-        simmilar_guns = []
-        for gun in guns:
-            gun['type'] = finder.find_type(gun['sound_url'])
-            if gun['type'] == new_gun['sound_url'] : simmilar_guns.append(gun)
+        result = finder.find_simmilarest(guns, new_gun)
+        print(result)
+        return result
 
-        if simmilar_guns.length == 1 : return simmilar_guns[0]
 
     def find_no_name_gun(self, guns):
-        for index, gun in guns:
+        for index, gun in enumerate(guns):
             if gun['name'] is None : return guns.pop(index)
-"""
-[
-            {
-                "id": 2,
-                "name": "pistol2",
-                "sound_url": "http://localhost:3002/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6MiwicHVyIjoiYmxvYl9pZCJ9fQ==--7aa3e4e419a9ceb65903c91271298d4127785fb0/Pistol-cocking-4(chosic.com).mp3"
-            },
-            {
-                "id": 3,
-                "name": "pistol3",
-                "sound_url": "http://localhost:3002/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6MywicHVyIjoiYmxvYl9pZCJ9fQ==--21364ef5dd4a5c49947b6b1f29010e700bc4fca3/Pistol-cocking-4(chosic.com).mp3"
-            },
-            {
-                "id": 4,
-                "name": "4",
-                "sound_url": "http://localhost:3002/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6NCwicHVyIjoiYmxvYl9pZCJ9fQ==--ad78aeda2021e7272753b4ec907ecd8540014ab4/Pistol-cocking-4(chosic.com).mp3"
-            },
-            {
-                "id": 6,
-                "name": "5",
-                "sound_url": "http://localhost:3002/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6NiwicHVyIjoiYmxvYl9pZCJ9fQ==--45d6e03bf2990aa6954af87a393361f3f6712bba/Pistol-cocking-4(chosic.com).mp3"
-            },
-            {
-                "id": 7,
-                "name": "6",
-                "sound_url": "http://localhost:3002/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6NywicHVyIjoiYmxvYl9pZCJ9fQ==--da34d07f7c7528bf4aa9f68c18894c487865e2f5/Pistol-cocking-4(chosic.com).mp3"
-            },
-            {
-                "id": 8,
-                "name": "7",
-                "sound_url": "http://localhost:3002/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6OCwicHVyIjoiYmxvYl9pZCJ9fQ==--ded84794ae2b364af9bcb6d5c7c9178040bf527b/Pistol-cocking-4(chosic.com).mp3"
-            },
-            {
-                "id": 33,
-                "name": None,
-                "sound_url": "http://localhost:3002/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOnsiZGF0YSI6MzIsInB1ciI6ImJsb2JfaWQifX0=--c41177d72e65ceae5d380e33d2a8ea19260763c3/Pistol-cocking-4(chosic.com).mp3"
-            }
-        ]
-"""
+
