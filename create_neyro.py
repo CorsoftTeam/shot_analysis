@@ -47,45 +47,16 @@ def load_data(data_dir, max_pad_len=128):
                 mfccs = mfccs[:, :max_pad_len]
             # Resize MFCC to 128x128
             mfccs_resized = cv2.resize(mfccs, (448, 448))
-            mfccs_resized = np.expand_dims(mfccs_resized, axis=-1)  # Add channel dimension
+            mfccs_resized = np.expand_dims(mfccs_resized, axis=-1)
             features.append(mfccs_resized)
             labels.append(label)
     return np.array(features), np.array(labels)
 
 data_dir = emrahaydemr_gunshot_audio_dataset_path
 
-# Set the path to your dataset directory
-data_dir = emrahaydemr_gunshot_audio_dataset_path  # Replace with your actual dataset path
-
-# Get a list of all categories (folders)
 categories = os.listdir(data_dir)
 
-# Select a random category
 random_category = random.choice(categories)
-
-# Get a list of all audio files in the selected category
-category_path = os.path.join(data_dir, random_category)
-audio_files = os.listdir(category_path)
-
-# Select a random audio file
-random_audio_file = random.choice(audio_files)
-audio_path = os.path.join(category_path, random_audio_file)
-
-# Load the audio file
-y, sr = librosa.load(audio_path, sr=None)
-
-# Generate the spectrogram
-S = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=128, fmax=8000)
-S_DB = librosa.power_to_db(S, ref=np.max)
-
-# Display the spectrogram
-plt.figure(figsize=(10, 4))
-librosa.display.specshow(S_DB, sr=sr, x_axis='time', y_axis='mel')
-plt.colorbar(format='%+2.0f dB')
-plt.title(f'Mel-Spectrogram of {random_audio_file}')
-plt.tight_layout()
-plt.show()
-print(random_category)
 
 X, y = load_data(data_dir)
 
