@@ -55,7 +55,7 @@ class RabbitMQWorker:
             # Формируем ответ
             gun = self.find_simmilar(message['data'], no_name_gun)
             if gun:
-                gun = { 'id': gun['id'], 'name': gun['name']}
+                gun = { 'id': gun['id'], 'name': gun['name'], 'type': gun['type']}
             response = {
                 'user_id': message['user_id'],
                 'message_id': message['message_id'],

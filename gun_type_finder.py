@@ -34,21 +34,14 @@ class GunTypeFinder:
         predicted_label = self.model.predict(mfccs)
         predicted_category = label_encoder.inverse_transform([np.argmax(predicted_label)])
         return predicted_category
-    
-    def extract_hf_energy(self, sound, sr, cutoff_freq=4000):
-        """Извлечение энергии высоких частот (выше cutoff_freq)"""
-        D = np.abs(librosa.stft(sound))  # Спектрограмма
-        freqs = librosa.fft_frequencies(sr=sr)  # Частотные оси
-        hf_mask = freqs >= cutoff_freq  # Маска высоких частот
-        hf_energy = np.mean(D[hf_mask, :])  # Средняя энергия ВЧ
-        return hf_energy
-    
+
     def find_simmilarest(self, guns, new_gun):
-        new_gun['type'] = self.find_type(new_gun)
+        new_gun['type'] = self.find_type(new_gun)[0]
         simmilar_guns = []
         for gun in guns:
-            gun['type'] = self.find_type(gun)
-            print(gun['name'], gun['type'])
+            if gun['type'] == None:
+                gun['type'] = self.find_type(gun)[0]
+                print(gun['name'], gun['type'])
             if gun['type'] == new_gun['type'] : simmilar_guns.append(gun)
 
         if len(simmilar_guns) == 0:
@@ -71,7 +64,6 @@ class GunTypeFinder:
             if min_distanse < distanse or min_distanse == -1:
                 min_index = index
                 min_distanse = distanse
-
         return guns[min_index]
 
     def extract_hf_energy(self, y, sr, cutoff_freq=4000):
